@@ -16,13 +16,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 #install.packages("mvtnorm")
 library(mvtnorm)
-EMalgo <- function(X,K,n.iter=50,...){
+EMalgo <- function(X,K,n.iter=50,plot=FALSE,...){
+  # Initialize
   n = nrow(X); p = ncol(X)
   P = matrix(NA,n,K)
-  
-  # Initialize
   prop = rep(1/K,K)
-  mu = matrix(rnorm(K*p),nrow=K,ncol=p)
+  mu = rmvnorm(K,mean = colMeans(X))
   Sigma = array(0,dim = c(K,p,p))
   for (k in 1:K) Sigma[k,,] = diag(p)
   
@@ -31,6 +30,13 @@ EMalgo <- function(X,K,n.iter=50,...){
     # E step
     for (k in 1:K) P[,k] = prop[k] * dmvnorm(X,mu[k,],Sigma[k,,])
     P = P / rowSums(P) %*% matrix(1,1,K) # Normalization
+    
+    # optionnal plot
+    if (plot){
+      plot(X,col=max.col(P)+1)
+      points(mu,col=c(2,3),pch=19,cex=3)
+      Sys.sleep(0.1)
+    }
     
     # M step
     for (k in 1:K){
@@ -56,9 +62,13 @@ plot(X)
 ```{r}
 out = EMalgo(X,2)
 out$mu
+plot(X)
+points(out$mu,col=c(2,3),pch=19,cex=3)
 ```
 
-
+```{r}
+out = EMalgo(X,2,plot = TRUE,n.iter = 10)
+```
 
 
 
